@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+
+    <title>OCR by Saket</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <style>
+      * {
+        padding: 0px;
+        margin: 0px;
+      }
+      body {
+        background: #36d1dc; /* fallback for old browsers */
+        background: -webkit-linear-gradient(
+          to right,
+          #5b86e5,
+          #36d1dc
+        ); /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(
+          to right,
+          #5b86e5,
+          #36d1dc
+        ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+      }
+      .scan-btn {
+        border: 1px solid rgb(0 0 0 / 15%);
+        background: #a8c0ff; /* fallback for old browsers */
+        background: -webkit-linear-gradient(
+          to right,
+          #3f2b96,
+          #a8c0ff
+        ); /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(
+          to right,
+          #3f2b96,
+          #a8c0ff
+        ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+      }
+      .header {
+        width: 100%;
+        padding: 10px;
+        background: #c0392b; /* fallback for old browsers */
+        background: -webkit-linear-gradient(
+          to right,
+          #8e44ad,
+          #c0392b
+        ); /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(
+          to right,
+          #8e44ad,
+          #c0392b
+        ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+        box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+      }
+      .box {
+        background: rgba(255, 255, 255, 0.35);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(7.5px);
+        -webkit-backdrop-filter: blur(7.5px);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+      .teaxtarea{
+        outline: none;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+    </style>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.1/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.1/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+      function MyOCR() {
+        // const [OcrImage, setOcrImage] = useState(null);
+        const [resText, setResText] = useState("");
+        const [progress, setProgress] = React.useState(0);
+        const [localData, setlocalData] = useState("");
+        const [status, setstatus] = useState("Not Initialized");
+        const ocrFunction = (OcrImage) => {
+          if (OcrImage) {
+            Tesseract.recognize(OcrImage, "eng", {
+              logger: (m) => [
+                m.status == "recognizing text"
+                  ? setProgress(Math.round(m.progress * 100))
+                  : setProgress(0),
+                setstatus(m.status),
+              ],
+            })
+              .then(({ data: { text } }) => {
+                // console.log(text);
+
+                setResText(text);
+              })
+              .catch((e) => console.log(e));
+          } else {
+            alert("Please choose an image....");
+          }
+        };
+
+        function InputFile() {
+          const [OcrImage1, setOcrImage1] = useState(null);
+          return (
+            <div
+              style={{
+                flex: 1,
+                marginInline: 10,
+                marginTop: 10,
+                alignItems: "center",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files[0]) {
+                    setOcrImage1(e.target.files[0]);
+                  }
+                }}
+              />
+              <button
+                className="scan-btn"
+                style={{
+                  marginTop: "1.5%",
+                  marginBottom:10,
+                  fontSize: 18,
+                  width: "40%",
+                  borderRadius: 5,
+                  padding: 5,
+                  color: "#fff",
+                }}
+                onClick={() => ocrFunction(OcrImage1)}
+                // disabled={OcrImage1 == null}
+              >
+                Scan
+              </button>
+              {progress == 100 ? (
+                <div>Success</div>
+              ) : (
+                <div style={{ textAlign: "center" }}>
+                  <div>{status}</div>
+                  <div>{progress}%</div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        const Scan = () => {
+          const [resText1, setResText1] = useState(resText);
+          const handleChange = (event) => {
+            var mytext = event.target.value;
+            setResText1(mytext);
+          };
+
+          // React.useEffect(() => {
+          //   const parsedData = JSON.parse(localStorage.getItem("resText1"));
+          //   if (parsedData) {
+          //     setResText1(parsedData);
+          //   }
+          // }, []);
+
+          // React.useEffect(() => {
+          //   const json = JSON.stringify(resText1);
+          //   localStorage.setItem("resText1", json);
+          // }, [resText1]);
+
+          return (
+            <div style={{ width: "100%", height: "100%" }}>
+              <h1
+                style={{ textAlign: "center", marginTop: 15, marginBottom: 15, color:"#fff" }}
+              >
+                Upload an image
+              </h1>
+
+              <div
+                className="box"
+                style={{
+                  // backgroundColor: "#dedede",
+                  marginRight: "auto",
+                  marginLeft: "auto",
+                  width: "80%",
+                  height: "100%",
+                  paddingTop: 10,
+                  alignContent: "center",
+                  borderRadius: 10,
+                }}
+              >
+                <InputFile />
+
+                <div style={{ height: 10, width: "100%" }} />
+                <div
+                  style={{
+                    display: "flex",
+                    flex: 4,
+                    height: "70%",
+                    borderWidth: 10,
+                    borderColor: "black",
+                    borderRadius: 10,
+                    // backgroundColor: "white",
+                    marginInline: 10,
+                    
+                  }}
+                >
+                  {/* =========================textArea=============================== */}
+
+                  <textarea
+                    placeholder="Enter your question here"
+                    rows={20}
+                    className="teaxtarea"
+                    style={{
+                      width: "90%",
+                      height: "100%",
+                      overflow: "scroll",
+                      borderRadius:5,
+                      marginRight:'auto',
+                      marginLeft:'auto',
+                      
+                    }}
+                    value={resText1.toUpperCase()}
+                    onChange={handleChange}
+                  />
+
+                  {/* <input type="textarea" name="edited_text" value={resText} rowsMax={10} style={{width:'98%'}} /> */}
+                </div>
+                <button
+                  //  className="scan-btn"
+                   style={{
+                  marginTop: 5,
+                  marginBottom:5,
+                  marginLeft: 5,
+                  // fontSize: 18,
+                 border:"none",
+                  borderRadius: 5,
+                  padding: 3,
+                  // color: "#fff",
+                }}
+                  // className="reload-btn"
+                  onClick={(e) => {
+                    setResText1("");
+                  }}
+                >
+                  Clear Text
+                </button>
+              </div>
+            </div>
+          );
+        };
+        return (
+          <div>
+            <h1
+              className="header"
+              style={{ textAlign: "center", color: "#fff" }}
+            >
+              Online OCR with Caps
+            </h1>
+            <Scan />
+          </div>
+        );
+      }
+
+      function Main() {
+        return (
+          <div className="container">
+            {" "}
+            <MyOCR />
+          </div>
+        );
+      }
+      ReactDOM.render(<Main />, document.getElementById("root"));
+    </script>
+  </body>
+</html>
